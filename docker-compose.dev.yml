@@ -1,0 +1,43 @@
+services:
+  seaweedfs:
+    image: chrislusf/seaweedfs:4.40
+    expose:
+      - "9333"
+      - "8888"
+      - "18888"
+    command: >
+      server
+      -dir=/data
+      -master.port=9333
+      -master.grpcPort=19333
+      -volume.port=8080
+      -volume.grpcPort=18080
+      -filer
+      -filer.port=8888
+      -filer.grpcPort=18888
+    volumes:
+      - seaweedfs_data:/data
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9333/cluster/status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  clamav:
+    image: clamav/clamav:1.5
+    expose:
+      - "3310"
+    volumes:
+      - clamav_data:/var/lib/clamav
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/clamdcheck.sh"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+      
+volumes:
+  seaweedfs_data:
+  clamav_data:
+  openstore_data:
